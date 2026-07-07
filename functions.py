@@ -146,3 +146,31 @@ def servoAndTemp(data_list):
         "servoPos": mapped_pos,
         "ambientTemp": ambient_temp,
     }
+
+def attitudeValues(data_list):
+    """Parses and scales pitch and roll data for the artificial horizon indicator.
+
+    Extracts raw orientation metrics from the telemetry payload, applies a scaling 
+    transformation to map the values to a physical degree range, and packs them 
+    into a single tuple for the widget to unpack.
+
+    Args:
+        data_list (list): Raw telemetry fields where index 0 is the raw pitch 
+            value and index 1 is the raw roll value.
+
+    Returns:
+        dict: A dictionary containing a tuple of scaled (pitch, roll) values 
+            under the key 'attitude'.
+    """
+    if not data_list or len(data_list) < 2:
+        return {"attitude": (0.0, 0.0)} 
+
+    raw_pitch = _safe_get(data_list, 0, default=5000.0) 
+    mapped_pitch = round((raw_pitch * 0.006 - 30), 2)
+    
+    raw_roll = _safe_get(data_list, 1, default=5000.0)
+    mapped_roll = round((raw_roll * 0.006 - 30), 2)
+
+    return {
+        "attitude": (mapped_pitch, mapped_roll)
+    }
