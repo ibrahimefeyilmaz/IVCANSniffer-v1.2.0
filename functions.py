@@ -1,0 +1,148 @@
+def _safe_get(data_list, index, default=0.0):
+    """Safely extracts a value from a list at a given index and converts it to float.
+
+    Args:
+        data_list (list): The source list containing raw data strings or numbers.
+        index (int): The target index position to access.
+        default (float, optional): Fallback value if an index error or conversion 
+            error occurs. Defaults to 0.0.
+
+    Returns:
+        float: The extracted float value, or the default value upon failure.
+    """
+    try:
+        return float(data_list[index])
+    except (IndexError, ValueError):
+        return default
+
+
+def servoValues(data_list):
+    """Parses servo position, setpoint, and status values from raw telemetry data.
+
+    Maps the 0-10000 raw input range onto specific coordinate boundaries tailored 
+    for visualization components.
+
+    Args:
+        data_list (list): Raw telemetry fields where index 0 is position, index 1 
+            is setpoint, index 2 is servo status, and index 3 is sensor status.
+
+    Returns:
+        dict: Parsed telemetry packet containing mapped position, setpoint, 
+            and status string indicators.
+    """
+    if not data_list:
+        return {"pos": 0.0, "setPt": 0.0, "srvStatus": "0", "sensorStatus": "0"}
+
+    # Use 5000.0 as default so gauges center themselves at 0.0 if data is missing
+    raw_pos = _safe_get(data_list, 0, default=5000.0)
+    raw_setpt = _safe_get(data_list, 1, default=5000.0)
+
+    # Map raw 0-10000 range to a physical range of -10.0 to +10.0
+    mapped_pos = round((raw_pos * 0.002) - 10.0, 2)
+    # Map raw 0-10000 range to a physical range of -15.0 to +15.0
+    mapped_setpt = round((raw_setpt * 0.003) - 15.0, 2)
+
+    return {
+        "pos": mapped_pos,
+        "setPt": mapped_setpt,
+        "srvStatus": data_list[2] if len(data_list) > 2 else "0",
+        "sensorStatus": data_list[3] if len(data_list) > 3 else "0",
+    }
+
+
+def speedValues(data_list):
+    """Extracts and scales speed information from telemetry data.
+
+    Args:
+        data_list (list): Raw telemetry fields where index 0 is raw speed.
+
+    Returns:
+        dict: Dictionary containing the scaled speed value under the key 'speed'.
+    """
+    if not data_list:
+        return {"speed": 0.0}
+    return {"speed": round(_safe_get(data_list, 0) * 0.005, 2)}
+
+
+def tempValues(data_list):
+    """Extracts and scales temperature metrics from telemetry data.
+
+    Args:
+        data_list (list): Raw telemetry fields where index 0 is raw temperature.
+
+    Returns:
+        dict: Dictionary containing the scaled temperature value under the key 'temp'.
+    """
+    if not data_list:
+        return {"temp": 0.0}
+    return {"temp": round((_safe_get(data_list, 0) * 0.005) - 10, 2)}
+
+
+def altValues(data_list):
+    """Extracts and formats altitude readings from telemetry data.
+
+    Args:
+        data_list (list): Raw telemetry fields where index 0 is raw altitude.
+
+    Returns:
+        dict: Dictionary containing the formatted altitude value under the key 'alt'.
+    """
+    if not data_list:
+        return {"alt": 0.0}
+    return {"alt": round(_safe_get(data_list, 0), 2)}
+
+
+def flightStatus(data_list):
+    """Extracts combined flight metrics including speed, temperature, altitude, and status codes.
+
+    Processes multiple instrument parameters packed within a single telemetry frame.
+
+    Args:
+        data_list (list): Raw sequence fields mapped as: index 0 (speed), 
+            index 1 (temp), index 2 (altitude), index 3 (roll), index 4 (engine), 
+            and index 5 (gps).
+
+    Returns:
+        dict: A comprehensive overview dictionary containing scaled metrics and status keys.
+    """
+    if not data_list:
+        return {"spd": 0.0, "tmp": 0.0, "alt": 0.0, "roll": 0.0, "engineStatus": "0", "gpsStatus": "0"}
+
+    # Use 5000.0 as default so gauge centers itself at 0.0 if data is missing
+    raw_roll = _safe_get(data_list, 3, default=5000.0)
+    mapped_roll = round((raw_roll * 0.003) - 15.0, 2)
+
+    return {
+        "spd": round(_safe_get(data_list, 0) * 0.005, 2),
+        "tmp": round((_safe_get(data_list, 1) * 0.005) - 10, 2),
+        "alt": round(_safe_get(data_list, 2), 2),
+        "roll": mapped_roll,
+        "engineStatus": data_list[4] if len(data_list) > 4 else "0",
+        "gpsStatus": data_list[5] if len(data_list) > 5 else "0",
+    }
+
+
+def servoAndTemp(data_list):
+    """Extracts a combined payload dataset for servo positioning and ambient temperature.
+
+    Args:
+        data_list (list): Raw telemetry fields where index 0 is raw servo position 
+            and index 1 is raw ambient temperature.
+
+    Returns:
+        dict: Parsed dictionary containing 'servoPos' and 'ambientTemp' keys.
+    """
+    if not data_list:
+        return {"servoPos": 0.0, "ambientTemp": 0.0}
+
+    # Use 5000.0 as default so gauge centers itself at 0.0 if data is missing
+    raw_pos = _safe_get(data_list, 0, default=5000.0)
+    mapped_pos = round((raw_pos * 0.002) - 10.0, 2)
+
+    # Convert raw data into temperature metric using a standard 0.005 scaling coefficient
+    ambient_temp = round((_safe_get(data_list, 1) * 0.005) - 10, 2)
+
+    return {
+        "servoPos": mapped_pos,
+        "ambientTemp": ambient_temp,
+    }
