@@ -30,6 +30,7 @@ rollGauge       = IndicatorWidget("gauge", -15, +15)
 speedometer_ind = IndicatorWidget("speedometer", 0, 50)
 thermometer_ind = IndicatorWidget("thermometer", -10, 40)
 altitude_ind    = IndicatorWidget("altitude", 0, 3000)
+artificial_horizon = IndicatorWidget("artificial_horizon", 0, 30)
 
 # Configuration mapping: [parser_function_name, output_key, widget_blueprint, ui_label]
 indicatorsList = [
@@ -51,7 +52,8 @@ indicatorsList = [
     ["flightStatus", "gpsStatus",      None,             "GPS"],
     
     ["servoAndTemp", "servoPos",       servoGauge_1,     "Servo Pos"],
-    ["servoAndTemp", "ambientTemp",    thermometer_ind,  "Ambient Temp"]
+    ["servoAndTemp", "ambientTemp",    thermometer_ind,  "Ambient Temp"],
+    ["attitudeValues", "attitude",     artificial_horizon, "Artificial Horizon"]
 ]
 
 FUNCTION_DISPLAY_NAMES = {}
