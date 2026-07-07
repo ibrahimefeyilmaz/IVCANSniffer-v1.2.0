@@ -4,6 +4,7 @@ from widgets.gauge import GaugeWidget
 from widgets.speedometer import ProfessionalSpeedometer
 from widgets.thermometer import VerticalThermometer
 from widgets.altitude import VerticalAltitudeBar
+from widgets.artificial_horizon import ArtificialHorizon
 
 # Registry mapping for each indicator type: (QWidget subclass, string name of its update method)
 _WIDGET_REGISTRY = {
@@ -11,6 +12,7 @@ _WIDGET_REGISTRY = {
     "speedometer": (ProfessionalSpeedometer,    "set_value"),
     "thermometer": (VerticalThermometer,        "set_temperature"),
     "altitude":    (VerticalAltitudeBar,        "set_altitude"),
+    "artificial_horizon": (ArtificialHorizon,  "set_artificial_horizon")
 }
 
 class IndicatorWidget:
