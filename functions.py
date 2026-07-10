@@ -1,3 +1,5 @@
+import struct 
+
 def _safe_get(data_list, index, default=0.0):
     """Safely extracts a value from a list at a given index and converts it to float.
 
@@ -174,3 +176,71 @@ def attitudeValues(data_list):
     return {
         "attitude": (mapped_pitch, mapped_roll)
     }
+
+
+def lidar_function(data_list):
+    """Parses and scales Lidar distance from raw telemetry data."""
+    if not data_list:
+        return {"lidar_distance": 0.0}
+
+    try:
+        # VALIDATION: Remove any empty or whitespace-only elements
+        clean_data = [x for x in data_list if str(x).strip() != '']
+        
+        if len(clean_data) < 4:
+            return {"lidar_distance": 0.0}
+
+        target_data = clean_data[0:4]
+        
+        if isinstance(target_data[0], str):
+            raw_bytes = bytes([int(x, 16) if 'x' in x.lower() else int(x) for x in target_data])
+        else:
+            raw_bytes = bytes(target_data)
+        
+        distance = struct.unpack('<f', raw_bytes)[0]
+        return {"lidar_distance": round(distance, 2)}
+    
+    except Exception as e:
+        # Log the exception for debugging instead of failing silently
+        print(f"[WARNING] Corrupt Lidar Packet Discarded. Error: {e} | Data: {data_list}")
+        return {"lidar_distance": 0.0}
+
+
+def pitot_function(data_list):
+    """Parses airspeed and temperature metrics from raw Pitot telemetry data."""
+    if not data_list:
+        return {"pitot_speed": 0.0, "temperature": 0}
+
+    try:
+        # VALIDATION: Remove any empty or whitespace-only elements
+        clean_data = [x for x in data_list if str(x).strip() != '']
+        
+        if len(clean_data) < 6:
+            return {"pitot_speed": 0.0, "temperature": 0}
+
+        speed_data = clean_data[0:4]
+        temp_data = clean_data[4:6]
+        
+        if isinstance(speed_data[0], str):
+            speed_bytes = bytes([int(x, 16) if 'x' in x.lower() else int(x) for x in speed_data])
+        else:
+            speed_bytes = bytes(speed_data)
+
+        if isinstance(temp_data[0], str):
+            temp_bytes = bytes([int(x, 16) if 'x' in x.lower() else int(x) for x in temp_data])
+        else:
+            temp_bytes = bytes(temp_data)
+        
+        pitot_speed = struct.unpack('<f', speed_bytes)[0]
+        temperature = struct.unpack('<h', temp_bytes)[0]
+        temperature = temperature / 1000.0
+        
+        return {
+            "pitot_speed": round(pitot_speed, 2),
+            "temperature": temperature
+        }
+        
+    except Exception as e:
+        # Log the exception for debugging instead of failing silently
+        print(f"[WARNING] Corrupt Pitot Packet Discarded. Error: {e} | Data: {data_list}")
+        return {"pitot_speed": 0.0, "temperature": 0}
