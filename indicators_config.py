@@ -11,7 +11,7 @@ Attributes:
     servoGauge_2 (IndicatorWidget): A gauge indicator ranging from -15 to +15.
     rollGauge (IndicatorWidget): A gauge indicator ranging from -15 to +15.
     speedometer_ind (IndicatorWidget): A speedometer ranging from 0 to 50.
-    thermometer_ind (IndicatorWidget): A thermometer ranging from -10 to 40.
+    thermometer_ind (IndicatorWidget): A thermometer ranging from -30 to 60.
     altitude_ind (IndicatorWidget): An altitude bar ranging from 0 to 3000.
     indicatorsList (list of list): A mapping table dictating the UI layout. 
         Format: [function_name, data_key, indicator_instance, display_label].
@@ -33,6 +33,8 @@ altitude_ind    = IndicatorWidget("altitude", 0, 3000)
 artificial_horizon = IndicatorWidget("artificial_horizon", 0, 30)
 lidar_alt_ind = IndicatorWidget("altitude",0,200)
 pitot_speed_ind = IndicatorWidget("speedometer",0,30)
+servoGauge_3    = IndicatorWidget("gauge", -15, +15)
+servoGauge_4    = IndicatorWidget("gauge", -15, +15)
 
 
 # Configuration mapping: [parser_function_name, output_key, widget_blueprint, ui_label]
@@ -59,7 +61,11 @@ indicatorsList = [
     ["attitudeValues", "attitude",     artificial_horizon, "Artificial Horizon(pitch,roll)"],
     ["lidar_function","lidar_distance", lidar_alt_ind, "Lidar Alt(m)"],
     ["pitot_function","pitot_speed",pitot_speed_ind,  "Airspeed(m/s)"],
-    ["pitot_function","temperature", thermometer_ind, "Pitot Temp(°C)"]
+    ["pitot_function","temperature", thermometer_ind, "Pitot Temp(°C)"],
+    ["servo"         ,"pos"          , servoGauge_3,   "Position:"],
+    ["servo"         ,"setPt"          ,servoGauge_4,   "Setpoint:"],
+    ["servo"         ,"servoStatus"          ,None,    "ServoStatus:"],
+    ["servo"         ,"sensorStatus"         ,None,   "SensorStatus:"]
 ]
 
 FUNCTION_DISPLAY_NAMES = {}
